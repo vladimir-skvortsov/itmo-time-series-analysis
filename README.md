@@ -1,40 +1,47 @@
-# Прогнозирование продаж классическими методами
+# Прогнозирование продаж (классика + LightGBM)
 
-Практическое задание №1 по курсу «Прикладной анализ временных рядов» (ИТМО).
-Прогноз дневных продаж 15 товаров магазина `STORE_2` на неделю, месяц и квартал
-с помощью Seasonal Naive, Holt–Winters, SARIMA и регрессии на тренд + Фурье + экзогенные признаки.
+Практические задания №1 и №2 по курсу "Прикладной анализ временных рядов" (ИТМО).
+Прогноз дневных продаж 15 товаров магазина `STORE_2` на неделю, месяц и квартал.
+
+- Задание №1: Seasonal Naive, Holt-Winters, SARIMA, регрессия (тренд + Фурье + экзогенные).
+- Задание №2: глобальный LightGBM с лагами и календарными признаками.
 
 ## Структура
 
 ```
-data/                      исходные CSV (продажи, календарь, цены)
+data/                         исходные CSV (продажи, календарь, цены)
 src/sales_forecast/
-  data.py                  загрузка, валидация, предобработка -> StoreDataset
-  models.py                модели с единым интерфейсом fit / predict
-  metrics.py               MAE, RMSE, WAPE, MASE
-  plotting.py              графики
-  forecaster.py            класс SalesForecaster — весь пайплайн
-tests/                     pytest (синтетические данные)
-notebooks/report.ipynb     отчёт: вызовы методов класса, графики, ответы на вопросы
+  data.py                     загрузка, валидация, предобработка -> StoreDataset
+  models.py                   классические модели (fit / predict)
+  features.py                 признаки для бустинга
+  boosting.py                 LightGBMGlobalModel
+  metrics.py                  MAE, RMSE, WAPE, MASE
+  plotting.py                 графики
+  forecaster.py               SalesForecaster (лаба 1)
+  modern_forecaster.py        ModernSalesForecaster (лаба 2)
+tests/                        pytest
+notebooks/report.ipynb        отчет по заданию №1
+notebooks/report_modern.ipynb отчет по заданию №2
 ```
 
 ## Запуск
 
 ```bash
 pip install -r requirements.txt
-pytest                     # тесты
-flake8 src tests           # PEP-8
-jupyter nbconvert --to notebook --execute --inplace notebooks/report.ipynb   # ~10 мин
+pytest
+flake8 src tests
+jupyter nbconvert --to notebook --execute --inplace notebooks/report.ipynb          # ~10 мин
+jupyter nbconvert --to notebook --execute --inplace notebooks/report_modern.ipynb   # ~3 мин
 ```
 
-Минимальный пример:
+Пример (лаба 2):
 
 ```python
-from sales_forecast import SalesForecaster
+from sales_forecast import ModernSalesForecaster
 
-forecaster = SalesForecaster("STORE_2", data_dir="data")
+forecaster = ModernSalesForecaster("STORE_2", data_dir="data")
 forecaster.load_data()
-forecaster.fit()                      # обучение всех моделей на всех товарах
-forecaster.summary("wape")            # модель x горизонт (week / month / quarter)
-forecaster.predict("month")           # {модель: DataFrame(даты x товары)}
+forecaster.fit()
+forecaster.summary("wape")
+forecaster.feature_importance(10)
 ```
